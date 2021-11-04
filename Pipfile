@@ -9,6 +9,7 @@ gym-cliffwalking = {editable = true, path = "./envs/gym-cliffwalking-master"}
 matplotlib = "*"
 numpy = "*"
 pyglet = "*"
+gym-auv = {editable = true, path = "./envs/gym-auv"}
 
 [dev-packages]
 
