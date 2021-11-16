@@ -6,17 +6,17 @@ import numpy as np
 
 def plot_data():
     # import pickle data
-    with open("Q_results.pkl", "rb") as f:
-        Q_dict = pickle.load(f)
+    with open("PG_results.pkl", "rb") as f:
+        PG_dict = pickle.load(f)
 
     # Keep track of figures
     i = 1
 
     # Get the settings
-    n_episodes = Q_dict['settings']['n_episodes']
+    n_episodes = PG_dict['settings']['n_episodes']
 
     # Get the data
-    data = Q_dict['sims']
+    data = PG_dict['sims']
 
     # Convert the data to numpy array
     np_data = np.array(data)
@@ -34,21 +34,21 @@ def plot_data():
     # Labels
     plt.xlabel("Episode #")
     plt.ylabel("Simulation Reward")
-    plt.title(f"Q Function Rewards")
+    plt.title(f"Policy Gradient Rewards")
 
     # Save the figure as PNG
-    plt.savefig(f'Q_fun_results.png', bbox_inches='tight')
+    plt.savefig(f'PG_results.png', bbox_inches='tight')
     
     # Iterate figure tracker
     i = i + 1
         
-    print(Q_dict['traj'][n_episodes - 1])
+    print(PG_dict['traj'][n_episodes - 1])
 
     # show the results
     # plt.show()
 
-    print(Q_dict['left_theta'])
-    # print(Q_dict['right_theta'])
+    print(PG_dict['left_theta'])
+    # print(PG_dict['right_theta'])
 
 
 
