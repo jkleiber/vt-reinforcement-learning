@@ -3,87 +3,136 @@ import gym
 import numpy as np
 import pickle
 
-from q_plotter import plot_data
+from numpy.lib.function_base import gradient
+
+from pg_plotter import plot_data
 
 # Gym environment
 env = None
 
 # TD Learning parameters
-alpha = 0.1 # Step size
-gamma = 0.9 # Gamma
+alpha = 1e-4 # Step size
+gamma = 0.9  # Gamma
 
 # Simulation settings
 n_episodes = 1000
-n_steps = 50
+n_steps = 200
+
+# States and actions
+n_states = 48
+n_actions = 4
 
 # Q function (tabular)
-Q_fun = None
+Theta = None
 
 # Random generator
-gen = np.random.default_rng(69)
+gen = np.random.default_rng(1234)
 
 
 # Results
-Q_dict = {}
+PG_dict = {}
 
 
 def init():
-    global env, Q_fun, Q_dict
+    global env, Theta, PG_dict
 
     # Make the environment
     env = gym.make('gym_cliffwalking:cliffwalking-v0')
 
     # Save the settings
-    Q_dict['settings'] = {'n_episodes': n_episodes}
+    PG_dict['settings'] = {'n_episodes': n_episodes}
 
     # Simulation dictionary
-    Q_dict['sims'] = []
-    Q_dict['traj'] = {}
+    PG_dict['sims'] = []
+    PG_dict['traj'] = []
+    PG_dict['num_success'] = 0
 
     # Initialize the Q function
     # 48 states and 4 actions
-    Q_fun = np.zeros((48, 4))
+    Theta = np.zeros((n_states, n_actions))
+
+    # Visitation heatmap
+    PG_dict['heatmap'] = np.zeros((n_states))
+
+
+
+def softmax_probability(s):
+    global Theta
+
+    # Exponentials for each action's weights
+    exp_list = []
+    for i in range(n_actions):
+        action_exp = np.exp(Theta[s, i])
+        exp_list.append(action_exp)
+
+    # Total exp sum
+    exp_total = sum(exp_list)
+
+    # Compute probabilities for each action
+    action_probs = []
+    for i in range(n_actions):
+        soft_prob = exp_list[i] / exp_total
+        action_probs.append(soft_prob)
+
+    return action_probs
+
+
+def softmax_gradient(s, a):
+    # Get action probabilities
+    action_prob = softmax_probability(s)
+
+    # Compute the gradients
+    gradient = []
+    for i in range(n_actions):
+        grad = action_prob[i] * (1 - action_prob[i])
+        gradient.append(grad)
+
+    return np.array(gradient)
+
+
+
+def softmax_action_sample(s):
+    # Get action probabilities
+    action_probs = softmax_probability(s)
+
+    # Sample from the possible actions
+    action = gen.choice(range(4), size=1, p=action_probs)[0]
+
+    return action
+
 
 
 def simulate(ep_num):
-    global env, Q_fun, gen
+    global env, Theta, gen
 
     # Restart the environment
     obs = env.reset()
-    Q_dict['traj'][ep_num].append(obs)
 
     # Total reward
-    total_reward = 0
+    trajectory = {
+        "reward": [],
+        "states": [],
+        "actions": []
+    }
 
     for i in range(n_steps):
-
-        # Random action
-        rand_action = env.action_space.sample()
-
         # Q function action
-        Q_action = np.argmax(Q_fun[obs,:])
-
-        # Decide which action to take
-        alpha = gen.uniform(0,1)
-        if alpha > 1 / (ep_num + 1):
-            action = Q_action
-        else:
-            action = rand_action
+        action = softmax_action_sample(obs)
 
         # Step in the environment
         new_obs, reward, done, info = env.step(action)
 
-        # Save a new trajectory point
-        Q_dict['traj'][ep_num].append(new_obs)
+        # Append to the trajectory
+        trajectory["states"].append(obs)
+        trajectory["actions"].append(action)
+        trajectory["reward"].append(reward)
 
-        # Q function update
-        Q_fun[obs, action] = Q_fun[obs, action] + alpha*(reward + gamma*np.max(Q_fun[new_obs,:]) - Q_fun[obs,action])
-
-        # Add to the total reward
-        total_reward += reward
+        # Add a visit to the heatmap
+        PG_dict["heatmap"][obs] += 1
 
         # If the program is done, end it
         if done:
+            PG_dict['num_success'] += 1
             break
 
         # Update the observation for the next step
@@ -91,7 +140,7 @@ def simulate(ep_num):
     # end simulation steps
 
     # Return the total reward for plotting
-    return total_reward
+    return trajectory
 
 
 def run_main():
@@ -100,19 +149,53 @@ def run_main():
 
     # Run some amount of episodes
     for i in range(n_episodes):
-        # Save the trajectories
-        Q_dict['traj'][i] = []
-
+        
         # Get the reward from the simulation
-        reward = simulate(i)
+        trajectory = simulate(i)
 
-        Q_dict['sims'].append(reward)
+        # Save trajectory results
+        PG_dict['traj'].append(trajectory)
+
+        # Save reward results
+        reward = sum(trajectory["reward"])
+        PG_dict["sims"].append(reward)
+
+        print(f"Episode #{i+1} - Reward: {reward}")
+
+        # Update the weights
+        states = trajectory["states"]
+        actions = trajectory["actions"]
+        rewards = trajectory["reward"]
+        T = len(states)
+
+        for t in range(T):
+            # Compute G
+            G = 0
+            for k in range(t+1, T):
+                G += gamma**(k-t-1) * rewards[k]
+
+            # update theta
+            state_t = states[t]
+            action_t = actions[t]
+            
+            gradient =  softmax_gradient(state_t, action_t)
+            update = alpha * gamma**t * G
+
+            # Apply gradient to each parameter for state s_t
+            for a in range(n_actions):
+                if a == action_t:
+                    Theta[state_t, action_t] += update * gradient[action_t]
+                else:
+                    Theta[state_t, a] += update * (1 - gradient[a])
+        
+        # Add table to PG data dictionary
+        PG_dict["value_table"] = Theta
     
     # end episodes for-loop
 
-    # Export Q results to pickle
-    with open("Q_results.pkl", "wb") as f:
-        pickle.dump(Q_dict, f)
+    # Export results to pickle
+    with open("PG_results.pkl", "wb") as f:
+        pickle.dump(PG_dict, f)
 
     # Plotting tool
     plot_data()

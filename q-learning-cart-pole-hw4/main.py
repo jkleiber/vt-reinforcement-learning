@@ -227,7 +227,7 @@ def run_main():
 
         if i >= 100:
             reward_arr = np.array(Q_dict['sims'])
-            reward_avg = np.average(reward_arr[(100 - i):i])
+            reward_avg = np.average(reward_arr[(i - 100):i])
 
             if reward_avg >= 195:
                 print(f"Cart Pole Solved in {i+1} episodes.")
