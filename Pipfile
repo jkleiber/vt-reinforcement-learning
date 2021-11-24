@@ -10,6 +10,7 @@ matplotlib = "*"
 numpy = "*"
 pyglet = "*"
 gym-auv = {editable = true, path = "./envs/gym-auv"}
+torch = "*"
 
 [dev-packages]
 
