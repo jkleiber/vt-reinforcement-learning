@@ -22,10 +22,10 @@ def plot_data(results):
     # Labels
     plt.xlabel("Episode #")
     plt.ylabel("Simulation Reward")
-    plt.title(f"Actor-Critic Rewards")
+    plt.title(f"Reward")
 
     # Save the figure as PNG
-    plt.savefig(f'AC_Reward.png', bbox_inches='tight')
+    plt.savefig(f'reward.png', bbox_inches='tight')
 
 
     # Plot the last figure trajectory data
@@ -40,7 +40,7 @@ def plot_data(results):
     plt.xlabel("Time")
 
     # Save the figure as PNG
-    plt.savefig(f'AC_Traj.png', bbox_inches='tight')
+    plt.savefig(f'traj.png', bbox_inches='tight')
 
 
 
