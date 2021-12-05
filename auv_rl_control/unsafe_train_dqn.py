@@ -17,9 +17,9 @@ env = gym.make("gym_auv:AUVControl-v0")
 n_episodes = 500
 n_train_steps = 200
 
-
+# Depth and yaw control action map
 # Action map is a meshgrid of values
-angles = np.array([-10, -5, -2, 0, 2, 5, 10])
+angles = np.radians(np.array([-10, -5, -2, 0, 2, 5, 10]))
 rudder, elevator = np.meshgrid(angles, angles)
 rudder_flat = rudder.flatten()
 elevator_flat = elevator.flatten()

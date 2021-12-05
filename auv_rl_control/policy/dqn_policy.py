@@ -12,9 +12,9 @@ from torch.distributions import Normal
 
 class DQNPolicy(Policy):
 
-    BATCH_SIZE = 128
+    BATCH_SIZE = 32
 
-    def __init__(self, action_map, n_states = 5, n_actions = 49, n_hidden = 128, lr = 1e-5, gamma = 0.9):
+    def __init__(self, action_map, n_states = 3, n_actions = 41, n_hidden = 32, lr = 1e-4, gamma = 0.99):
         # Map action index to action value
         self.action_map = action_map
         
@@ -55,7 +55,7 @@ class DQNPolicy(Policy):
         self.main_optimizer = optim.Adam(self.main_network.parameters(), lr=self.learn_rate)
 
         # Experience replay
-        self.replay_buffer = ReplayBuffer()
+        self.replay_buffer = ReplayBuffer(max_size=100000)
 
         # number of training steps
         self.n_train_steps = 0
@@ -120,10 +120,8 @@ class DQNPolicy(Policy):
         loss.backward()
         self.main_optimizer.step()
 
-        # Update the target network periodically
-        if self.n_train_steps % 1000:
-            self.target_network.load_state_dict(self.main_network.state_dict())
-
+    def update_target(self):
+        self.target_network.load_state_dict(self.main_network.state_dict())            
 
     def add_experience(self, state, action, reward, next_state, done):
         self.replay_buffer.append(state, action, reward, next_state, done)

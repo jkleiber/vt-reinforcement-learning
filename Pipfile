@@ -11,6 +11,7 @@ numpy = "*"
 pyglet = "*"
 gym-auv = {editable = true, path = "./envs/gym-auv"}
 torch = "*"
+scipy = "*"
 
 [dev-packages]
 

@@ -4,12 +4,19 @@ import matplotlib.pyplot as plt
 import numpy as np
 
 
+angles = np.array([-10, -5, -2, 0, 2, 5, 10])
+rudder, elevator = np.meshgrid(angles, angles)
+rudder_flat = rudder.flatten()
+elevator_flat = elevator.flatten()
+action_map = np.stack((elevator_flat, rudder_flat))
+
 def plot_data(results):
     # Find number of episodes
     n_episodes = len(results)
 
     # Convert the results into vectors
     rewards = [np.sum(result["rewards"]) for result in results]
+    actions = [result["actions"] for result in results]
     states = [result["states"] for result in results]
 
     # Create an episode list
@@ -43,11 +50,23 @@ def plot_data(results):
     plt.savefig(f'traj.png', bbox_inches='tight')
 
 
+    # Control plots
+    print(action_map[:,actions[n_episodes - 1]])
+    ctrl = np.transpose(action_map[:,actions[n_episodes - 1]])
+    plot3 = plt.figure(3)
+    plt.plot(steps,ctrl)
+    plt.title("Control")
+    plt.xlabel("Time")
+    plt.legend(("Elevator", "Rudder"))
+
+    plt.savefig(f'control.png', bbox_inches='tight')
+
+
 
 
 if __name__ == "__main__":
     # Pick results file
-    results_file = "unsafe_train_results.pkl"
+    results_file = "unsafe_train_dqn_results.pkl"
 
     # import pickle data
     with open(results_file, "rb") as f:

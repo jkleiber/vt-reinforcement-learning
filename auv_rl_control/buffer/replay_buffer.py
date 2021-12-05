@@ -4,7 +4,7 @@ from collections import deque
 
 class ReplayBuffer():
 
-    def __init__(self, max_size = 10000, seed = 1234):
+    def __init__(self, max_size = 100000, seed = 1234):
         self.state_buf = deque(maxlen=max_size)
         self.action_buf = deque(maxlen=max_size)
         self.reward_buf = deque(maxlen=max_size)
