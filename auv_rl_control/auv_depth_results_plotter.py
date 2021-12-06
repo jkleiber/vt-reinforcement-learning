@@ -9,7 +9,7 @@ angles = np.radians(np.linspace(-10, 10, num=41))
 action_map = angles
 print(np.size(angles))
 
-def plot_depth_data(results, ep = 964):
+def plot_depth_data(results, ep = 996):
     # Find number of episodes
     n_episodes = len(results)
 

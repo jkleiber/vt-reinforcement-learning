@@ -14,7 +14,7 @@ class DDQNPolicy(Policy):
 
     BATCH_SIZE = 128
 
-    def __init__(self, action_map, n_states = 3, n_actions = 41, n_hidden = 64, lr = 1e-4, gamma = 0.99):
+    def __init__(self, action_map, n_states = 3, n_actions = 41, n_hidden = 32, lr = 1e-4, gamma = 0.99):
         # Map action index to action value
         self.action_map = action_map
         
@@ -41,8 +41,8 @@ class DDQNPolicy(Policy):
         self.main_network = nn.Sequential(
             nn.Linear(self.state_dim, self.hidden_dim),
             nn.ReLU(),
-            # nn.Linear(self.hidden_dim, self.hidden_dim),
-            # nn.ReLU(),
+            nn.Linear(self.hidden_dim, self.hidden_dim),
+            nn.ReLU(),
             nn.Linear(self.hidden_dim, self.action_dim)
         )
 
@@ -50,8 +50,8 @@ class DDQNPolicy(Policy):
         self.target_network = nn.Sequential(
             nn.Linear(self.state_dim, self.hidden_dim),
             nn.ReLU(),
-            # nn.Linear(self.hidden_dim, self.hidden_dim),
-            # nn.ReLU(),
+            nn.Linear(self.hidden_dim, self.hidden_dim),
+            nn.ReLU(),
             nn.Linear(self.hidden_dim, self.action_dim)
         )
 

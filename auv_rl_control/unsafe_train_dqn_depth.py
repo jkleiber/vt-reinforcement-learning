@@ -8,6 +8,7 @@ import numpy as np
 from auv_depth_results_plotter import plot_depth_data
 
 # Policies
+from policy.dqn_policy import DQNPolicy
 from policy.ddqn_policy import DDQNPolicy
 from policy.ddqn_cbf import DDQNPolicyCBF
 
@@ -27,7 +28,7 @@ angles = np.radians(np.linspace(-10, 10, num=41))
 action_map = angles
 
 # Algorithms
-dqn_policy = DDQNPolicyCBF(action_map, n_states=3, n_actions=np.size(angles), n_hidden=32)
+dqn_policy = DDQNPolicy(action_map, n_states=3, n_actions=np.size(angles), n_hidden=16, lr=1e-3)
 
 def simulate(policy, n_steps):
     global target_step_track
