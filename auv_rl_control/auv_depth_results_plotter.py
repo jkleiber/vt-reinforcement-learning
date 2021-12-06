@@ -7,7 +7,6 @@ import numpy as np
 # Depth control action map
 angles = np.radians(np.linspace(-10, 10, num=41))
 action_map = angles
-print(np.size(angles))
 
 def plot_depth_data(results, ep = 996):
     # Find number of episodes
@@ -65,6 +64,49 @@ def plot_depth_data(results, ep = 996):
     print("Plotting finished!")
 
 
+def plot_test_data(result, name):
+    # Close all other plots
+    plt.close('all')
+
+    # Convert the results into vectors
+    actions = result[0]["actions"] 
+    states = result[0]["states"]
+    rewards = [r['rewards'] for r in result]
+    total_rewards = [np.sum(r) for r in rewards]
+
+    # Reward histogram
+    plot1 = plt.figure(1)
+    plt.hist(total_rewards)
+    plt.savefig(f'{name}_reward_hist.png', bbox_inches='tight')
+
+    # Plot the last figure trajectory data
+    X = np.squeeze(states)
+    n_steps = len(X)
+    steps = np.linspace(1,n_steps,num=n_steps)
+
+    plot2 = plt.figure(2)
+    plt.plot(steps, X)
+    plt.legend(("Pitch Error", "Pitch Rate", "Depth Error"))
+    plt.suptitle("Trajectory")
+    # plt.title(f"")
+    plt.xlabel("Time")
+
+    # Save the figure as PNG
+    plt.savefig(f'{name}_depth_traj.png', bbox_inches='tight')
+
+
+    # Control plots
+    ctrl = np.degrees(action_map[actions])
+    plot3 = plt.figure(3)
+    plt.plot(steps,ctrl)
+    plt.suptitle("Control")
+    plt.xlabel("Time")
+    plt.legend(("Elevator"))
+
+    plt.savefig(f'{name}_depth_control.png', bbox_inches='tight')
+
+
+    print("Plotting finished!")
 
 
 if __name__ == "__main__":

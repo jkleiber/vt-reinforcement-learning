@@ -14,7 +14,7 @@ class DDQNPolicy(Policy):
 
     BATCH_SIZE = 128
 
-    def __init__(self, action_map, n_states = 3, n_actions = 41, n_hidden = 32, lr = 1e-4, gamma = 0.99):
+    def __init__(self, action_map, n_states = 3, n_actions = 41, n_hidden = 32, lr = 1e-4, gamma = 0.99, eps=1.0, prefix=None):
         # Map action index to action value
         self.action_map = action_map
         
@@ -32,10 +32,20 @@ class DDQNPolicy(Policy):
         self.gamma = gamma
 
         # Epsilon
-        self.epsilon = 1.0 # Reduce as time goes on
+        self.epsilon = eps # Reduce as time goes on
 
         # Gradual update of target parameters
         self.tau = 0.001
+
+        # File name prefix
+        self.file_prefix = prefix
+
+        # File naming for models
+        self.main_str = "main_net.pt"
+        self.target_str = "target_net.pt"
+        if prefix is not None:
+            self.main_str = prefix + "_" + self.main_str
+            self.target_str = prefix + "_" + self.target_str
 
         # Main network
         self.main_network = nn.Sequential(
@@ -147,12 +157,12 @@ class DDQNPolicy(Policy):
             self.epsilon -= reduction
 
     def save_models(self):
-        torch.save(self.main_network.state_dict(), "main_net.pt")
-        torch.save(self.target_network.state_dict(), "target_net.pt")
+        torch.save(self.main_network.state_dict(), self.main_str)
+        torch.save(self.target_network.state_dict(), self.target_str)
 
     def load_models(self):
-        self.main_network.load_state_dict(torch.load("main_net.pt"))
-        self.target_network.load_state_dict(torch.load("target_net.pt"))
+        self.main_network.load_state_dict(torch.load(self.main_str))
+        self.target_network.load_state_dict(torch.load(self.target_str))
 
         self.main_network.eval()
         self.target_network.eval()
